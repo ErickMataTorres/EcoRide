@@ -1,0 +1,206 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    ViewData["Title"] = "Tipos de pago";
+}
+
+
+<div class="modal fade" id="miModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitulo">Modal title</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="modalBodyContenedor">
+                    <label>Nombre:</label>
+                    <input type="text" class="form-control" id="txtNombre" placeholder="...">
+                </div>
+                <div class="modalBodyContenedor">
+                    <label>Comision:</label>
+                    <input type="number" class="form-control" id="txtComision" placeholder="..."/>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="btnCerrar">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="btnConfirmar" onclick="EjecutarAccion();">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+<style>
+    h1 {
+        text-align: center;
+    }
+    .nuevoContenedor{
+        display:flex;
+        justify-content:flex-end;
+    }
+    .modalBodyContenedor{
+        text-align:center;
+        padding:8px;
+        line-height:2;        
+    }
+    #liveAlertPlaceholder{
+        text-align:center;
+    }
+</style>
+<h1>Tipo de pagos</h1>
+
+<div id="liveAlertPlaceholder"></div>
+
+<div class="nuevoContenedor">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#miModal" onclick="AbrirModal('Registrar', null);">Nuevo</button>
+</div>
+
+<table id="tablaTipoPagos" class="table table-hover table-bordered table-striped" style="width:100%">
+    <thead>
+        <tr>
+            @* <th>Id</th> *@
+            <th>Nombre</th>
+            <th>Comisión</th>
+            <th>Acción</th>
+        </tr>
+    </thead>
+    <tfoot>
+        <tr>
+            @* <th>Id</th> *@
+            <th>Nombre</th>
+            <th>Comisión</th>
+            <th>Acción</th>
+        </tr>
+    </tfoot>
+</table>
+
+
+<script src="~/js/Url.js"></script>
+<script>
+    const CargarPagina = () => {
+        TablaTipoPagos();
+    }
+
+    const AppendAlert = (mensaje, tipo) => { 
+        const liveAlertPlaceholder = document.getElementById("liveAlertPlaceholder");
+        const wrapper = document.createElement("div");
+        const idUnico = Date.now().toString() + Math.random().toString();
+        wrapper.innerHTML = [
+            `
+                <div class="alert alert-${tipo} alert-dismissible" role="alert" id="${idUnico}">
+                    <div>${mensaje}</div>
+                </div>
+            `
+        ].join("");
+        liveAlertPlaceholder.append(wrapper);
+        setTimeout(() => {
+            document.getElementById(idUnico).remove();
+        },8000);
+    }
+
+    const AbrirModal = (accion, item) => {
+        const modalTitulo = document.getElementById("modalTitulo");
+        const btnConfirmar = document.getElementById("btnConfirmar");
+        modalTitulo.innerText = accion;
+        btnConfirmar.innerText = accion;
+
+        const txtNombre = document.getElementById("txtNombre");
+        const txtComision= document.getElementById("txtComision");
+
+
+        if (accion === "Registrar") {
+            txtNombre.value = "";
+            txtComision.value = "";
+        } else {
+            if (accion === "Modificar") {
+                let datosPago = item.split('|');
+                btnConfirmar.setAttribute("idAtributo", datosPago[0]);
+                txtNombre.value = datosPago[1];
+                txtComision.value = datosPago[2];
+            } else {
+                const modalBodyContenedor = document.querySelector(".modalBodyContenedor");
+                btnConfirmar.setAttribute("idAtributo", item);
+                modalBodyContenedor.style.display = "none";
+            }
+        }
+
+    }
+
+    const EjecutarAccion = () => {
+
+        const accion = document.getElementById("modalTitulo").textContent;
+        const btnConfirmar = document.getElementById("btnConfirmar");
+        let idTipoPago = 2;
+
+
+        if (accion === "Registrar") {
+            idTipoPago = 0;
+        }else{
+            idTipoPago = btnConfirmar.getAttribute("idAtributo");
+        }
+
+        const tipoPago = {
+            Id: idTipoPago,
+            Nombre: document.getElementById("txtNombre").value,
+            Comision: document.getElementById("txtComision").value
+        };
+
+        fetch("/TipoPagos/RegistrarTipoPagos", {
+            method: "POST",
+            headers: {
+                "Content-Type":"application/json"
+            },
+            body: JSON.stringify(tipoPago)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Error al ${accion}`);
+            }
+            return response.json();
+        })
+        .then(response => {
+            if (response.id === 1||response.id===2) {
+                AppendAlert(response.nombre, "primary");
+            }
+            $("#tablaTipoPagos").DataTable().ajax.reload();
+            document.getElementById("btnCerrar").click();
+        })
+        .catch(error => {
+            console.error("Ha ocurrido un error", error);
+        })
+    }
+
+    const TablaTipoPagos = () => {
+        $("#tablaTipoPagos").DataTable({
+            ajax: {
+                url: "/TipoPagos/TablaTipoPagos",
+                type: "GET",
+                dataSrc: ""
+            },
+            columns: [
+                { data: "nombre" },
+                { data: "comision" },
+                {
+                    data: null,
+                    render: function (item, type, row) {
+                        return `
+                            <button class="btn btn-warning" onclick="AbrirModal('Modificar', '${item.id}|${item.nombre}|${item.comision}');" data-bs-toggle="modal" data-bs-target="#miModal">Modificar</button>
+                            <button class="btn btn-danger" onclick="AbrirModal('Borrar', ${item.id});" data-bs-toggle="modal" data-bs-target="#miModal">Borrar</button>
+                        `
+                    }
+                }
+            ],
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json'
+            }
+        });
+    }
+
+    window.onload = CargarPagina;
+</script>

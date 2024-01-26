@@ -1,0 +1,751 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    ViewData["title"] = "Rentas";
+}
+
+
+<div id="modalPagar" class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">Método de pago</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+
+                <label for="paymentMethod">Selecciona el método de pago:</label>
+                <select id="paymentMethod" onchange="updatePaymentMethod()">
+                    <option value="efectivo">Efectivo</option>
+                    <option value="tarjeta">Tarjeta</option>
+                </select>
+
+                <label for="totalAmount">Total a Pagar:</label>
+                <input type="number" id="totalAmount" readonly>
+
+                <label for="amountPaid">Monto Pagado:</label>
+                <input type="number" id="amountPaid" placeholder="Ingrese la cantidad" oninput="calculateChange()">
+
+                <label for="change">Cambio:</label>
+                <input type="text" id="change" readonly>
+
+                <div class="contenedorConfimarModal">
+                    <button class="success" onclick="ProcesarPago();">
+                        <img src="https://img.icons8.com/ios/50/ffffff/checkmark.png" alt="Éxito"/>
+                    </button>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="btnCancelarPago">Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<style>
+
+    #modalPagar label {
+        display: block;
+        margin: 10px 0;
+        font-weight: bold;
+        color: #ccc;
+    }
+
+    #modalPagar select,
+    input {
+        width: 100%;
+        padding: 8px;
+        margin: 5px 0 15px;
+        box-sizing: border-box;
+        background-color: #444;
+        border: 1px solid #555;
+        color: #fff;
+    }
+
+    #modalPagar button {
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        
+    }
+
+    .contenedorConfimarModal{
+        display:flex;
+        justify-content:center;
+    }
+
+    #modalPagar .success {
+        background-color: #4caf50;
+        color: #fff;
+        border: none;
+    }
+
+        #modalPagar .success:hover {
+            background-color: #45a049;
+        }
+
+    #modalPagar .error {
+        background-color: #f44336;
+        color: #fff;
+        border: none;
+    }
+
+        #modalPagar .error:hover {
+            background-color: #d32f2f;
+        }
+
+    #modalPagar .cancel {
+        background-color: #555;
+        color: #fff;
+        border: none;
+    }
+
+        #modalPagar .cancel:hover {
+            background-color: #444;
+        }
+
+    #modalPagar
+    input[type="text"],
+    input[type="number"] {
+        background-color: #555;
+        border: 1px solid #666;
+        border-radius: 3px;
+        color: #fff;
+    }
+
+    .scootersContenedor {
+        text-align: center;
+        border: 1px solid white;
+        border-radius:4px;
+        min-height:150px;
+        height: 15vh;
+        width:60%;
+        min-width:400px;
+    }
+
+    .ajustesContenedor{
+        text-align: center;
+        border: 1px solid white;
+        border-radius: 4px;
+        min-height: 150px;
+        height: 15vh;
+        width: 40%;
+        min-width:400px;
+    }
+    #scootersLabel, #ajustesLabel, #detalleLabel{
+        font-size:x-large;
+    }
+    .headerContenedor{
+        display:flex;
+        flex-direction: row;
+    }
+
+    .scootersSeccion {
+        display:flex;
+        justify-content:center;
+        flex-direction:row;
+    }
+
+    .scootersSeccion div {
+        display:flex;
+        flex-direction:column;
+        margin:2%;
+    }
+    .ajustesSeccion{
+        display:flex;
+        justify-content:center;
+        flex-direction:row;
+    }
+    .ajustesSeccion div{
+        width: 30%;
+        margin-top:7%;
+    }
+    .cuerpoContenedor{
+        border: 1px solid white;
+        border-radius:4px;
+    }
+    #btnAsignar{
+        width:200px;
+        height:40px;
+    }
+
+    .footerContenedor{
+        display:flex;
+        flex-direction:row;
+        justify-content:space-between;
+        border:1px solid white;
+        border-radius:4px;
+    }
+
+    #pagoContenedor{
+        display:flex;
+        flex-direction:column;
+        justify-content:space-between;
+    }
+    #btnPagar{
+        height:50px;
+    }
+    #lblSubTotal{
+        font-size:xx-large;
+    }
+    .table{
+        margin-bottom:0;
+    }
+    h1{
+        text-align:center;
+    }
+    .inicioTermino{
+        display:flex;
+        justify-content:space-between;
+        border:solid 2px green;
+        border-radius:4px;
+        margin-top:4px;
+    }
+
+    .cronometroContenedor{
+        display:flex;
+        justify-content:space-between;
+    }
+
+</style>
+
+<h1>Rentas</h1> 
+
+<section class="headerContenedor">
+    <div class="scootersContenedor">
+        <label id="scootersLabel">Scooters</label>
+        <section class="scootersSeccion" id="scootersProgramar">
+            
+            
+            @* <div>
+                <label>Scooter 1</label>
+                <button class="btn btn-primary">Seleccionar</button>
+            </div> *@
+
+
+@*             <div>
+                <label>Scooter 2</label>
+                <button class="btn btn-primary">Seleccionar</button>
+            </div>
+            <div>
+                <label>Scooter 3</label>
+                <button class="btn btn-primary">Seleccionar</button>
+            </div>
+            <div>
+                <label>Scooter 4</label>
+                <button class="btn btn-primary">Seleccionar</button>
+            </div> *@
+        </section>
+    </div>
+    <div class="ajustesContenedor">
+        <label id="ajustesLabel">Tiempo</label>
+        <section class="ajustesSeccion">
+            <div>
+                <select class="form-control" id="slcTiempo">
+                    <option value="50">15 minutos</option>
+                    <option value="100">30 minutos</option>
+                </select>
+            </div>
+            <div>
+                <button class="btn btn-primary" id="btnAsignar" onclick="PostTemporalRentas();">Asignar</button>
+            </div>
+        </section>
+    </div>
+</section>
+<section class="cuerpoContenedor">
+     <label id="detalleLabel">Detalle</label>
+    <table id="tablaTemporalRentas" class="table table-hover table-bordered table-striped" style="width:100%">
+        <thead>
+            <tr>
+                <th>Scooter</th>
+                <th>Tiempo</th>
+                <th>Precio</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+                <th>Scooter</th>
+                <th>Tiempo</th>
+                <th>Precio</th>
+                <th>Acción</th>
+            </tr>
+        </tfoot>
+    </table>
+</section>
+<section class="footerContenedor">
+    <div class="venta1">
+        <div class="card text-center" style="width: 24rem;">
+            <ul class="list-group list-group-flush" id="anexarRentas">
+              <!--  <li class="list-group-item flex-end">
+                    <div class="cronometroContenedor">
+                        <label>Scooter 1: ⌚ 15:00</label>
+                        <button class="btn btn-primary">Terminar</button>
+                    </div>
+                    @* <button class="btn btn-danger">Extra</button> *@
+                    <div class="inicioTermino">
+                        <label>Inicio: 10:10</label><label>Termino: 10:25</label>
+                    </div>
+                  </li>    -->
+            </ul>
+        </div>
+    </div>
+
+    <div id="pagoContenedor">
+        <label id="lblSubTotal">SubTotal: $ 0.00</label>
+        <button class="btn btn-success" id="btnPagar" data-bs-toggle="modal" data-bs-target="#modalPagar" onclick="AbrirModalPagar();">Pagar</button>
+    </div>
+
+</section>
+
+<script src="~/js/Url.js"></script>
+<script>
+
+    let scooterSeleccionado = {
+        Scooters: [],
+        Datos: {}
+    };
+
+    const AbrirModalPagar = () => {
+
+        const amountPaid = document.getElementById("amountPaid");
+        const change = document.getElementById("change");
+
+        amountPaid.value = "";
+        change.value = "";
+
+        const lblSubTotal = document.getElementById("lblSubTotal");
+        document.getElementById('totalAmount').value = lblSubTotal.getAttribute("data-subTotal");
+    }
+
+    const ProcesarPago = () => {
+
+        const renta = {
+            
+            IdPago: 1343,
+            DineroPago: document.getElementById("amountPaid").value,
+            Cambio: document.getElementById("change").value,
+            Comision: 0,
+            SubTotal: document.getElementById("lblSubTotal").getAttribute("data-subTotal"),
+            Total: document.getElementById("lblSubTotal").getAttribute("data-subTotal")
+        };
+
+        fetch(Url + "/Rentas/ProcesarPago", {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify(renta)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Ha ocurrido un error");
+                }
+                return response.json();
+            })
+            .then(response=>{
+
+                const btnCancelarPago = document.getElementById("btnCancelarPago");
+                btnCancelarPago.click();
+
+                $("#tablaTemporalRentas").DataTable().ajax.reload();
+
+                const btnDespuesPago = document.querySelectorAll(".btnDespuesPago");
+                btnDespuesPago.forEach(function (boton) {
+                    boton.classList.remove("btn-danger");
+                    boton.classList.add("btn-primary");
+                    boton.textContent = "Seleccionar";
+                });
+
+                let arregloIndividual = [];
+                
+                const scootersDatosIndividuales = JSON.parse(response.nombre);
+
+                const anexarRentas = document.getElementById("anexarRentas");
+                
+
+                scootersDatosIndividuales.Scooters.map(scooter => {
+                    arregloIndividual = scooter.Nombre.split("|");
+                    iniciarCronometro(arregloIndividual);
+                });
+
+
+
+                    
+                // scootersDatosIndividuales.Scooters.map(scooter => {
+                //     arregloIndividual = scooter.Nombre.split("|");
+                    
+                //     console.log(arregloIndividual[1]);
+
+                //     anexarRentas.innerHTML += `
+                //                 <li class="list-group-item flex-end">
+                //                 <div class="cronometroContenedor">
+                //                     <label>Scooter ${arregloIndividual[0]}: ⌚ ${arregloIndividual[1]} </label>
+                //                     <button class="btn btn-primary">Terminar</button>
+                //                 </div>
+                //                 <div class="inicioTermino">
+                //                     <label>Inicio: 10:10</label><label>Termino: 10:25</label>
+                //                 </div>
+                //               </li>
+                //         `;
+
+                // });
+
+            })
+            .catch(error => {
+                console.error("Ha ocurrido un error", error);
+            })
+    }
+
+    // const PagoProcesadoIniciarCronometro = (elementos) => {
+        // Tu arreglo de elementos con id, nombre y tiempo
+        // var elementos = [
+        //     { id: 1, nombre: 'Cronómetro 1', tiempo: 900 },  // 15 minutos
+        //     { id: 2, nombre: 'Cronómetro 2', tiempo: 600 },  // 10 minutos
+        //     { id: 3, nombre: 'Cronómetro 3', tiempo: 1200 }  // 20 minutos
+        //     // Puedes agregar más elementos según sea necesario
+        // ];
+
+        // Función para iniciar un cronómetro
+        function iniciarCronometro(elemento) {
+            elemento[1] = (elemento[1] * 60);
+
+            var li = document.createElement('li');
+            li.classList.add('list-group-item');
+            li.classList.add("flex-end");
+
+            document.getElementById('anexarRentas').appendChild(li);
+            
+            const cronometroContenedor = document.createElement("div");
+            cronometroContenedor.classList.add("cronometroContenedor");
+            li.appendChild(cronometroContenedor);
+
+            const labelScooterCronometro = document.createElement("label");
+            const botonTerminar = document.createElement("button");
+            botonTerminar.textContent = "Terminar";
+            botonTerminar.classList.add("btn");
+            botonTerminar.classList.add("btn-primary");
+
+            cronometroContenedor.appendChild(labelScooterCronometro);
+            cronometroContenedor.appendChild(botonTerminar);
+
+            const divInicioTermino = document.createElement("div");
+            li.appendChild(divInicioTermino);
+            divInicioTermino.classList.add("inicioTermino");
+            
+            const labelInicio = document.createElement("label");
+            const labelTermino = document.createElement("label");
+
+            let fechaActual = new Date();
+            fechaActual.setTime(fechaActual.getTime() + elemento[1] * 1000);
+
+            labelInicio.innerHTML = `Inicio:${FormatearFecha(new Date())}`;
+            labelTermino.style.fontSize = "large";
+            labelTermino.style.fontWeight = "bold";
+            labelTermino.innerHTML = `Termino: ${FormatearFecha(fechaActual)}`;
+
+            divInicioTermino.appendChild(labelInicio);
+            divInicioTermino.appendChild(labelTermino);
+
+            var cuentaRegresiva = setInterval(function () {
+                var minutos = Math.floor(elemento[1] / 60);
+                var segundos = elemento[1] % 60;
+
+            labelScooterCronometro.innerHTML = `Scooter ${elemento[0]}: ⌚ ${minutos}m ${segundos}s`;
+
+                if (elemento[1] <= 0) {
+                    clearInterval(cuentaRegresiva);
+                labelScooterCronometro.innerHTML += '<br>¡Tiempo agotado!';
+                } else {
+                    elemento[1]--;
+                }
+            }, 1000);
+        }
+
+    const FormatearFecha = (date) => {
+        let opciones = { hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: true };
+        return date.toLocaleString("es-MX", opciones);
+    }
+
+        // Iterar sobre los elementos y iniciar cronómetros
+        // elementos.forEach(function (elemento) {
+        //     iniciarCronometro(elemento);
+        // });
+    // }
+
+    function updatePaymentMethod() {
+        var paymentMethod = document.getElementById('paymentMethod').value;
+        if (paymentMethod === 'efectivo') {
+            document.getElementById('amountPaid').placeholder = 'Ingrese la cantidad en efectivo';
+        } else {
+            document.getElementById('amountPaid').placeholder = 'Ingrese la cantidad con tarjeta';
+        }
+    }
+    
+    function calculateChange() {
+        var totalAmount = parseFloat(document.getElementById('totalAmount').value);
+        var amountPaid = parseFloat(document.getElementById('amountPaid').value);
+
+        if (isNaN(amountPaid)) {
+            document.getElementById('change').value = '';
+            return;
+        }
+
+        var change = amountPaid - totalAmount;
+        document.getElementById('change').value = change.toFixed(2);
+    }
+
+
+    const CargarPagina = () => {
+        ConsultarScooters();
+        TablaTemporalRentas();
+    }
+
+    const PostTemporalRentas = () => {
+
+        const slcTiempo = document.getElementById("slcTiempo");
+        const lblSubTotal = document.getElementById("lblSubTotal");
+
+        let tiempo = 0;
+        if (slcTiempo.value === "50") {
+            tiempo = 15;
+        } else {
+            tiempo = 30;
+        }
+
+
+        scooterSeleccionado.Datos = {
+            Tiempo: tiempo,
+            Cantidad: 1,
+            Precio: slcTiempo.value
+        };
+
+
+
+        fetch(Url + "/Rentas/PostTemporalRentas", {
+            method:"POST",
+            headers: {
+                "Content-Type":"application/json"
+            },
+            body: JSON.stringify(scooterSeleccionado)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(response);
+                }
+                return response.json();
+            })
+            .then(response => {
+                $("#tablaTemporalRentas").DataTable().ajax.reload();
+                
+                lblSubTotal.innerHTML = `SubTotal: $ ${response.nombre}`;
+                lblSubTotal.setAttribute("data-subTotal", response.nombre);
+                
+            })
+            .catch(error => {
+                console.error(error);
+            })
+    }
+
+    const TablaTemporalRentas = () => {
+        $("#tablaTemporalRentas").DataTable({
+            ajax: {
+                url: Url+"/Rentas/TablaTemporalRentas",
+                type: "GET",
+                dataSrc: ""
+            },
+            columns: [
+                { data: "nombreScooter" },
+                { data: "tiempo" },
+                { data: "precio" },
+                {
+                    data: null,
+                    render: function (item, type, row) {
+                        return `
+                                <button class="btn btn-danger" onclick="BorrarTemporalRentas(${item.idScooter});">Borrar</button>
+                            `
+                    }
+                }
+            ],
+            language: {
+                url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/es-MX.json'
+            }
+        });
+    }
+    const BorrarTemporalRentas = (idScooter) => {
+
+
+        fetch(Url + `/Rentas/BorrarTemporalRentas/${idScooter}`, {
+            method:"DELETE"
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Error al borrar el registro");
+                }
+                return response.json();
+            })
+            .then(response => {
+                $("#tablaTemporalRentas").DataTable().ajax.reload();
+                const lblSubTotal = document.getElementById("lblSubTotal");
+                
+                if (response.nombre === null || response.nombre === "") {
+                    lblSubTotal.innerHTML = "SubTotal: $ 0.00";
+                } else {
+                    lblSubTotal.innerHTML = `SubTotal: $ ${response.nombre}`;
+                    lblSubTotal.setAttribute("data-subTotal", response.nombre);
+                }
+                
+            })
+            .catch(error => {
+                console.log("Ha ocurrido un error: ", error);
+            })
+    }
+
+    const ConsultarScooters = () => {
+        fetch(Url + "/Scooters/ConsultarScooters", {
+            method:"GET"
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(response)
+                }
+                return response.json();
+            })
+            .then(dataResponse => {
+                const scootersProgramar = document.getElementById("scootersProgramar");
+                for (let item of dataResponse) {
+                    scootersProgramar.innerHTML += `                    
+                        <div>
+                            <label>Scooter ${item.id}</label>
+                            <button class="btn btn-primary btnDespuesPago" id="${item.id}" onclick="BotonSeleccionado('${item.id}|${item.nombre}');">Seleccionar</button>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error(error);
+            })
+    }
+
+    const BotonSeleccionado = (datosScooter)=>{
+
+        let scooterRecibido = datosScooter.split('|');
+
+        const botonASeleccionar = document.getElementById(scooterRecibido[0]);
+
+        const objetoDatos = {
+            id: scooterRecibido[0],
+            nombre: scooterRecibido[1]
+        };
+        
+        if (botonASeleccionar.textContent === "Seleccionar") {
+            botonASeleccionar.textContent = "Seleccionado";
+
+            botonASeleccionar.addEventListener("click", function () {
+                BorrarTemporalRentas(scooterRecibido[0]);
+            });
+
+            botonASeleccionar.classList.remove("btn-primary");
+            botonASeleccionar.classList.add("btn-danger");
+            scooterSeleccionado.Scooters.push(objetoDatos);
+
+
+        } else{
+            botonASeleccionar.textContent = "Seleccionar";
+            botonASeleccionar.classList.remove("btn-danger");
+            botonASeleccionar.classList.add("btn-primary");
+        
+            let idBorrarScooter = scooterSeleccionado.Scooters.findIndex(i => i.id === objetoDatos.id);
+            scooterSeleccionado.Scooters.splice(idBorrarScooter, 1);
+
+
+        }
+        // console.log(scooterSeleccionado);
+    }
+
+    window.onload = CargarPagina;
+</script>
+
+@* <link rel="stylesheet" href="/css/Rentas.css"/>
+
+<section class="principalContenedor">
+
+    <div>
+        <h3>Scooters</h3>
+
+        <section class="scootersSeccion">
+
+            <div class="individualScooter">
+                <label>Scooter 1</label>
+                <button>Seleccionar</button>
+            </div>
+
+            <div class="individualScooter">
+                <label>Scooter 2</label>
+                <button>Seleccionar</button>
+            </div>
+
+            <div class="individualScooter">
+                <label>Scooter 3</label>
+                <button>Seleccionar</button>
+            </div>
+
+            <div class="individualScooter">
+                <label>Scooter 4</label>
+                <button>Seleccionar</button>
+            </div>
+
+            <div class="individualScooter">
+                <label>Scooter 5</label>
+                <button>Seleccionar</button>
+            </div>
+
+            <div class="individualScooter">
+                <label>Scooter 6</label>
+                <button>Seleccionar</button>
+            </div>
+
+            <div class="individualScooter">
+                <label>Scooter 7</label>
+                <button>Seleccionar</button>
+            </div>
+
+            <div class="individualScooter">
+                <label>Scooter 8</label>
+                <button>Seleccionar</button>
+            </div>
+
+        </section>
+
+    </div>
+
+    <div>
+        <h3>Tiempo</h3>
+
+        <section>
+        </section>
+
+    </div>
+
+    <div class="detalleContenedor">
+        <h3>Detalle</h3>
+    </div>
+
+    <div>
+        <h3>Rentas</h3>
+    </div>
+
+    <div>
+        <h3>Pago</h3>
+    </div>
+</section> *@

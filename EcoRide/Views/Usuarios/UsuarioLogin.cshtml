@@ -1,0 +1,122 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    ViewData["Title"] = "Sesión";
+}
+
+<style>
+    h1{
+        text-align:center;
+    }
+
+    .principalContenedor{
+        display:flex;
+        justify-content:center;
+    }
+    .contenedorLogin{
+        display:flex;
+        justify-content:center;
+        flex-direction:column;
+        text-align:center;
+        width:20%;
+        align-items:center;
+        min-width:200px;
+        line-height:3;
+    }
+    .contenedorLogin button{
+        margin-top:4%;
+    }
+    .spinner{
+        margin:4%;
+        display:none;
+    }
+    #datosRespuesta{
+        margin:4%;
+        display:none;
+        color:red;
+        line-height:initial;
+    }
+    
+</style>
+
+<h1>Sesión</h1>
+
+<div class="principalContenedor">
+
+    <div class="contenedorLogin">
+        <label for="txtUsuario">Usuario:</label><input type="text" placeholder="..." class="form-control" id="txtUsuario"/>
+        <label for="txtContrasena">Contraseña:</label><input type="password" placeholder="..." class="form-control" id="txtContrasena"/>
+        <label id="datosRespuesta"></label>
+        <div class="spinner-border text-primary spinner" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <button class="btn btn-primary" onclick="ValidarUsuario();">Iniciar sesión</button>
+    </div>
+
+</div>
+<script src="/js/Url.js"></script>
+<script>
+    
+    const CargarPagina = () => {
+    }
+
+    const ValidarUsuario = () => {
+
+        const usuarioConst = document.getElementById("txtUsuario");
+        const contrasena = document.getElementById("txtContrasena");
+        const datosRespuesta = document.getElementById("datosRespuesta");
+
+
+        if(usuarioConst.value===""||contrasena.value===""){
+            datosRespuesta.innerHTML = "Ingresar usuario y contraseña";
+            datosRespuesta.style.display = "block";
+            return;
+        }
+
+        const usuario = {
+            UsuarioProp: usuarioConst.value,
+            Contrasena: contrasena.value
+        };
+
+        fetch(Url + "/Usuarios/ValidarUsuario", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(usuario)
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(`Error`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                const spinner=document.querySelector(".spinner");
+                if (data.id === 2) {
+                    datosRespuesta.innerHTML = data.nombre;
+                    datosRespuesta.style.display = "block";
+                }
+                else{
+                    const respuestaServidor = data.nombre.split("|");
+                    
+                    datosRespuesta.innerHTML = respuestaServidor[0];
+
+                    datosRespuesta.style.display = "block";
+                    datosRespuesta.style.color = "white";
+
+                    spinner.style.display = "block";
+                    setTimeout(() => {
+                        spinner.style.display = "none";
+                        location.href = "";
+                    }, 4000);
+                }
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    }
+
+    window.onload = CargarPagina;
+</script>

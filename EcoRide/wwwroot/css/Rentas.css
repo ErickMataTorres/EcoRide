@@ -1,0 +1,49 @@
+﻿body {
+    margin: 0;
+}
+
+h3 {
+    text-align: center;
+}
+
+.principalContenedor {
+    display: grid;
+    grid-template-columns: 1fr 30%;
+    height: 100vh;
+}
+
+    .principalContenedor > div {
+        border: 1px solid white;
+        border-radius: 4px;
+    }
+
+.scootersSeccion {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.individualScooter {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+
+    .individualScooter > button {
+        width: 100px;
+        align-self: center;
+    }
+
+.detalleContenedor {
+    grid-column: span 2;
+}
+
+@media (max-width: 768px) {
+    .scootersSeccion {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .principalContenedor > div {
+        grid-column: span 2;
+    }
+}
