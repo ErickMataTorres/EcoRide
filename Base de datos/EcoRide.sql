@@ -236,4 +236,4 @@ CREATE TABLE DetalleRentas
 	PRIMARY KEY(Id, IdRenta, Renglon)
 )
 
-SELECT SUM(SubTotal) FROM DetalleRentas
+SELECT SUM(SubTotal) AS [SubTotal] FROM DetalleRentas

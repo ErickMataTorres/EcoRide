@@ -283,10 +283,10 @@
         </tfoot>
     </table>
 </section>
-<section class="footerContenedor">
-    <div class="venta1">
-        <div class="card text-center" style="width: 24rem;">
-            <ul class="list-group list-group-flush" id="anexarRentas">
+<section class="footerContenedor" id="footerContenedor">
+    @* <div id="divVenta"> *@
+@*         <div class="card text-center" style="width: 24rem;">
+            <ul class="list-group list-group-flush" id="anexarRentas"> *@
               <!--  <li class="list-group-item flex-end">
                     <div class="cronometroContenedor">
                         <label>Scooter 1: ⌚ 15:00</label>
@@ -297,9 +297,9 @@
                         <label>Inicio: 10:10</label><label>Termino: 10:25</label>
                     </div>
                   </li>    -->
-            </ul>
-        </div>
-    </div>
+@*             </ul>
+        </div> *@
+    @* </div> *@
 
     <div id="pagoContenedor">
         <label id="lblSubTotal">SubTotal: $ 0.00</label>
@@ -372,6 +372,24 @@
                 const scootersDatosIndividuales = JSON.parse(response.nombre);
 
                 const anexarRentas = document.getElementById("anexarRentas");
+
+
+
+                
+                footerContenedor.innerHTML +=
+                    `
+                            <div>
+                                <div class="card text-center" style="width: 24rem;">
+                                    <ul class="list-group list-group-flush">
+
+                                    </ul>
+                                </div>
+                            </div>
+                `;
+
+
+
+
                 
 
                 scootersDatosIndividuales.Scooters.map(scooter => {
@@ -379,7 +397,10 @@
                     iniciarCronometro(arregloIndividual);
                 });
 
-
+                scooterSeleccionado = {
+                    Scooters: [],
+                    Datos: {}
+                };
 
                     
                 // scootersDatosIndividuales.Scooters.map(scooter => {
@@ -420,15 +441,22 @@
         function iniciarCronometro(elemento) {
             elemento[1] = (elemento[1] * 60);
 
+        const footerContenedor = document.getElementById("footerContenedor");
+
+
             var li = document.createElement('li');
             li.classList.add('list-group-item');
             li.classList.add("flex-end");
 
-            document.getElementById('anexarRentas').appendChild(li);
+            
+            
+
+
+        // document.getElementById('anexarRentas').appendChild(li);
             
             const cronometroContenedor = document.createElement("div");
             cronometroContenedor.classList.add("cronometroContenedor");
-            li.appendChild(cronometroContenedor);
+        li.appendChild(cronometroContenedor);
 
             const labelScooterCronometro = document.createElement("label");
             const botonTerminar = document.createElement("button");
@@ -449,7 +477,7 @@
             let fechaActual = new Date();
             fechaActual.setTime(fechaActual.getTime() + elemento[1] * 1000);
 
-            labelInicio.innerHTML = `Inicio:${FormatearFecha(new Date())}`;
+            labelInicio.innerHTML = `Inicio: ${FormatearFecha(new Date())}`;
             labelTermino.style.fontSize = "large";
             labelTermino.style.fontWeight = "bold";
             labelTermino.innerHTML = `Termino: ${FormatearFecha(fechaActual)}`;
